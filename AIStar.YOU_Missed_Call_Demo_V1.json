@@ -1,0 +1,273 @@
+{
+  "name": "AIStar.YOU_Missed_Call_Demo_V1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "missed-call",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "176f0af5-dc2a-4353-a302-6a17a10783cd",
+      "name": "Webhook",
+      "webhookId": "f31a14c2-f288-4e60-abcf-6f27a92e5ca4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e0638e23-611e-45ac-a4b5-fdbc908eb1a3",
+              "name": "lead_id",
+              "value": "={{ $json.body.event_id }}",
+              "type": "string"
+            },
+            {
+              "id": "ed9493da-d8bb-4736-ada1-6cdc71febedc",
+              "name": "caller_number",
+              "value": "={{ $json.body.caller_number }}",
+              "type": "string"
+            },
+            {
+              "id": "753eca35-afd4-4a6d-8a9f-9eee9ec4b98d",
+              "name": "client_business",
+              "value": "={{ $json.body.client_business }}",
+              "type": "string"
+            },
+            {
+              "id": "84db5a69-403d-4910-a311-9f4bb7c62d50",
+              "name": "event_type",
+              "value": "={{ $json.body.event_type }}",
+              "type": "string"
+            },
+            {
+              "id": "c42ab3c4-e89e-436f-bb26-61708e769d24",
+              "name": "timestamp",
+              "value": "={{ $json.body.timestamp }}",
+              "type": "string"
+            },
+            {
+              "id": "5e10da3e-40a3-4f1f-bb5b-e58bb4a38912",
+              "name": "consent_status",
+              "value": "={{ $json.body.consent_status }}",
+              "type": "string"
+            },
+            {
+              "id": "d34f2c35-2118-48a7-97d4-965c2f67eb19",
+              "name": "opt_out",
+              "value": "={{ $json.body.opt_out }}",
+              "type": "string"
+            },
+            {
+              "id": "446ace6b-9cc2-49c1-85f0-f707d65bd11f",
+              "name": "test_mode",
+              "value": "={{ $json.body.test_mode }}",
+              "type": "string"
+            },
+            {
+              "id": "1e3ab892-4bac-421a-9742-fe248a3dfd91",
+              "name": "suppression_status",
+              "value": "={{ $json.body.suppression_status }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "5247da60-1ead-4a8a-bd6a-196024dd7885",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "820ca37c-90c7-430a-bb33-8c388a282427",
+              "leftValue": "={{ $json.consent_status }}",
+              "rightValue": "approved_test",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "b663c18e-9f9b-486e-b042-ecd760f34341",
+              "leftValue": "={{ $json.opt_out }}",
+              "rightValue": "false",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "131dba02-02b0-493d-b35f-5ddeba1502ad",
+              "leftValue": "={{ $json.suppression_status }}",
+              "rightValue": "clear",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "577e2420-452f-48f0-b8ab-ae8254471141",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f0801c06-2f93-473a-915e-5e4407b04021",
+              "name": "eligibility_decision",
+              "value": "blocked",
+              "type": "string"
+            },
+            {
+              "id": "cf4361fe-74e7-4da4-b9fb-673c8423b2a6",
+              "name": "eligibility_reason",
+              "value": "={{ String($json.opt_out).toLowerCase() === 'true'   ? 'opt_out'   : $json.suppression_status !== 'clear'     ? 'suppressed'     : $json.consent_status !== 'approved_test'       ? 'consent_not_approved'       : 'eligibility_failed' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        96
+      ],
+      "id": "6e86375f-e9f2-4610-8a41-f338f0df5d6b",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "removeItemsSeenInPreviousExecutions",
+        "dedupeValue": "lead_id",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "ee5a436f-3494-4259-a622-40052cc31094",
+      "name": "Remove Duplicates"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "content-type": "application/json"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "event_type": "missed_call",
+            "event_id": "TEST-002",
+            "caller_number": "+12145550100",
+            "called_number": "+14695550101",
+            "timestamp": "2026-07-17T13:58:00Z",
+            "client_business": "AIStar.YOU Demo HVAC",
+            "test_mode": true,
+            "consent_status": "approved_test",
+            "opt_out": false,
+            "suppression_status": "clear"
+          },
+          "webhookUrl": "https://aistar-you.app.n8n.cloud/webhook-test/missed-call",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2136d061-cc43-411b-b822-fb73e8c0cf8e",
+  "meta": {
+    "instanceId": "b38bb4426413406566c242f7e8011f51151b5e6e3307caf7a0e9071d1835b419"
+  },
+  "nodeGroups": [],
+  "id": "tdtduFIULwOUnitu",
+  "tags": []
+}
