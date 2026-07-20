@@ -396,13 +396,19 @@
             {
               "id": "29aa1622-efaf-492c-954f-46bfa1c957c1",
               "name": "eligibility_reason",
-              "value": "duplicate_lead_demo_guard",
+              "value": "={{ $json.duplicate_source === 'n8n_execution_history' ? 'duplicate_lead_execution_history' : 'duplicate_lead_demo_guard' }}",
               "type": "string"
             },
             {
               "id": "ce8a0738-a211-42c2-8c48-d35001291221",
               "name": "audit_note",
-              "value": "Controlled fixture duplicate detected before simulated outreach. Remove Duplicates node remains in path for n8n execution-history dedupe on eligible demo traffic.",
+              "value": "={{ $json.duplicate_source === 'n8n_execution_history' ? 'Duplicate detected from persisted n8n execution-history demo state before simulated outreach. Structured stopped response returned; no live delivery attempted.' : 'Controlled fixture duplicate detected before simulated outreach. Remove Duplicates node remains in path for fresh eligible demo traffic.' }}",
+              "type": "string"
+            },
+            {
+              "id": "a239e538-7f54-4ed8-9e61-40bb320c921a",
+              "name": "duplicate_source",
+              "value": "={{ $json.duplicate_source || 'controlled_fixture' }}",
               "type": "string"
             }
           ]
@@ -421,7 +427,54 @@
     },
     {
       "parameters": {
-        "operation": "removeItemsSeenInPreviousExecutions",
+        "jsCode": "const data = $getWorkflowStaticData('global');\ndata.seenDemoDuplicateKeys = data.seenDemoDuplicateKeys || {};\nconst now = new Date().toISOString();\nreturn items.map((item) => {\n  const key = String(item.json.demo_duplicate_key || item.json.lead_id || '');\n  const seenRecord = key ? data.seenDemoDuplicateKeys[key] : undefined;\n  if (key && !seenRecord) {\n    data.seenDemoDuplicateKeys[key] = { first_seen_at: now, lead_id: item.json.lead_id || null };\n  }\n  return {\n    json: {\n      ...item.json,\n      is_execution_history_duplicate: Boolean(seenRecord),\n      duplicate_source: seenRecord ? 'n8n_execution_history' : item.json.duplicate_source,\n      duplicate_first_seen_at: seenRecord?.first_seen_at || null,\n    },\n  };\n});"
+      },
+      "id": "2a57a448-0bbd-45ce-923f-e013f0b4f3df",
+      "name": "Execution History Duplicate Flag",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ff808d92-f153-4261-b5ea-d06ad3308146",
+              "leftValue": "={{ $json.is_execution_history_duplicate }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "8c7c4d37-81e2-4a32-bb1e-76fd1707e498",
+      "name": "Execution History Duplicate Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "removeDuplicateInputItems",
         "dedupeValue": "demo_duplicate_key",
         "options": {}
       },
@@ -616,7 +669,7 @@
         ],
         [
           {
-            "node": "Remove Duplicates",
+            "node": "Execution History Duplicate Flag",
             "type": "main",
             "index": 0
           }
@@ -672,6 +725,35 @@
         [
           {
             "node": "Final Structured Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execution History Duplicate Flag": {
+      "main": [
+        [
+          {
+            "node": "Execution History Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execution History Duplicate Check": {
+      "main": [
+        [
+          {
+            "node": "Build Duplicate Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Remove Duplicates",
             "type": "main",
             "index": 0
           }
