@@ -50,11 +50,13 @@ The current V1 keeps the original intent and extends it into a full demonstratio
 4. `Consent Opt-Out Suppression Eligibility Check` preserves consent, opt-out, and suppression protections.
 5. `Build Blocked Eligibility Result` creates a structured stopped result when a contact is opted out, suppressed, or lacks approved test consent.
 6. `Deterministic Demo Duplicate Check` provides a controlled duplicate fixture guard for repeatable local demos.
-7. `Remove Duplicates` remains in the eligible path for n8n execution-history duplicate protection.
-8. `Build Duplicate Result` returns a structured stopped result for the controlled duplicate fixture.
-9. `Build Invalid Payload Result` returns a structured stopped result for malformed or incomplete input.
-10. `Build Simulated Recovery Records` deterministically qualifies eligible HVAC leads, classifies urgency, and builds simulated customer and owner records.
-11. `Final Structured Webhook Response` returns the final JSON response to the webhook caller.
+7. `Execution History Duplicate Flag` checks persisted demo duplicate state before the item can be dropped by n8n duplicate removal.
+8. `Execution History Duplicate Check` routes previously seen eligible demo keys to a structured duplicate result.
+9. `Remove Duplicates` remains in the fresh eligible path to remove duplicate items within the current execution without swallowing the only webhook response item.
+10. `Build Duplicate Result` returns a structured stopped result for both the controlled duplicate fixture and execution-history duplicates.
+11. `Build Invalid Payload Result` returns a structured stopped result for malformed or incomplete input.
+12. `Build Simulated Recovery Records` deterministically qualifies eligible HVAC leads, classifies urgency, and builds simulated customer and owner records.
+13. `Final Structured Webhook Response` returns the final JSON response to the webhook caller.
 
 ## Consent and Safety Protections
 
@@ -66,7 +68,8 @@ The workflow is designed to stop before any simulated outreach record is created
 - `opt_out` is false;
 - `suppression_status` is `clear`;
 - the demo duplicate guard does not identify the fixture as duplicate;
-- n8n's duplicate-removal node allows the item through.
+- the execution-history duplicate check has not already seen the demo key;
+- the current execution duplicate-removal node allows the fresh item through.
 
 Blocked and invalid branches explicitly state that no live delivery was attempted.
 
@@ -108,13 +111,13 @@ In n8n, test each fixture body:
 | `opt_out` | `stopped` | Stops with `opt_out`; no simulated customer response or live delivery. |
 | `suppressed_contact` | `stopped` | Stops with `suppressed`; no simulated customer response or live delivery. |
 | `unapproved_consent` | `stopped` | Stops with `consent_not_approved`; no simulated customer response or live delivery. |
-| `duplicate_lead` | `stopped` | Stops with `duplicate_lead_demo_guard` using the controlled fixture key. |
+| `duplicate_lead` | `stopped` | Stops with `duplicate_lead_demo_guard` using the controlled fixture key. Replayed eligible keys stop with `duplicate_lead_execution_history`. |
 | `malformed_missing_required_data` | `stopped` | Stops with `malformed_or_missing_required_data_or_test_mode_not_true`. |
 
 ## Current Limitations
 
 - n8n import and execution must still be manually verified inside an n8n instance.
-- The duplicate-removal node depends on n8n execution history; the controlled duplicate fixture is included to keep local demos deterministic.
+- Execution-history duplicate detection uses n8n workflow static data so replayed eligible demo keys return a structured stopped response instead of being silently dropped; `Remove Duplicates` is limited to duplicate items inside the current execution to avoid hanging response-node webhooks.
 - No live owner email, SMS, voice call, AI classification, CRM update, or calendar booking occurs.
 - The workflow does not prove recovered revenue, booked jobs, delivery confirmation, or customer conversion.
 
