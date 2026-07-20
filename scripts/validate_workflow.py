@@ -8,6 +8,7 @@ FX=ROOT/'tests/fixtures/hvac_missed_call_fixtures.json'
 REQUIRED_NODES={
  'Webhook','Normalize Missed Call Payload','Required Data Check',
  'Consent Opt-Out Suppression Eligibility Check','Deterministic Demo Duplicate Check',
+ 'Execution History Duplicate Flag','Execution History Duplicate Check',
  'Remove Duplicates','Build Simulated Recovery Records','Build Blocked Eligibility Result',
  'Build Duplicate Result','Build Invalid Payload Result','Final Structured Webhook Response'}
 REQUIRED_FIXTURES={'eligible_lead','opt_out','suppressed_contact','unapproved_consent','duplicate_lead','malformed_missing_required_data'}
@@ -21,9 +22,14 @@ names={n.get('name') for n in workflow.get('nodes',[])}
 missing=REQUIRED_NODES-names
 if missing: fail(f'missing required nodes: {sorted(missing)}')
 conn=workflow.get('connections',{})
-for src,dst in [('Webhook','Normalize Missed Call Payload'),('Normalize Missed Call Payload','Required Data Check'),('Remove Duplicates','Build Simulated Recovery Records')]:
+for src,dst in [('Webhook','Normalize Missed Call Payload'),('Normalize Missed Call Payload','Required Data Check'),('Execution History Duplicate Flag','Execution History Duplicate Check'),('Execution History Duplicate Check','Build Duplicate Result'),('Execution History Duplicate Check','Remove Duplicates'),('Remove Duplicates','Build Simulated Recovery Records')]:
     blob=json.dumps(conn.get(src,{}))
     if dst not in blob: fail(f'missing connection {src} -> {dst}')
+
+node_by_name={n.get('name'): n for n in workflow.get('nodes',[])}
+remove_duplicates_operation=node_by_name['Remove Duplicates'].get('parameters',{}).get('operation')
+if remove_duplicates_operation != 'removeDuplicateInputItems': fail('Remove Duplicates must not drop prior-execution webhook items before a response is returned')
+if 'duplicate_lead_execution_history' not in WF.read_text(): fail('execution-history duplicate response reason missing')
 text=WF.read_text()+FX.read_text()
 for pat in PROHIBITED:
     if re.search(pat,text): fail(f'prohibited secret-like token matched {pat}')
