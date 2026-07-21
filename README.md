@@ -129,7 +129,7 @@ In n8n, test each fixture body:
 
 ## Current Limitations
 
-- n8n import and execution must still be manually verified inside an n8n instance.
+- Submission-critical paths were manually verified in n8n for the happy path, human-review path, urgent-human-review path, opt-out block, controlled duplicate guard, and malformed-input stop. The `suppressed_contact` and `unapproved_consent` fixtures remain documented deterministic expectations unless separately runtime-tested.
 - Execution-history duplicate detection uses n8n workflow static data so replayed eligible demo keys return a structured stopped response instead of being silently dropped; `Remove Duplicates` is limited to duplicate items inside the current execution to avoid hanging response-node webhooks.
 - No live owner email, SMS, voice call, AI classification, CRM update, or calendar booking occurs.
 - The workflow does not prove recovered revenue, booked jobs, delivery confirmation, or customer conversion.
