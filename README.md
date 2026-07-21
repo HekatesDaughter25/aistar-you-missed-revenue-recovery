@@ -166,3 +166,15 @@ The broader AIStar brand and domain existed before Build Week. The current proje
 During the Submission Period, the project record shows the missed-call business framing and MVP planning, creation and hardening of the zero-budget n8n demonstration, deterministic required-data/eligibility/opt-out/suppression/duplicate protections, structured stopped and eligible outputs, controlled fixtures and validation scripts, the final three-state handoff model, conservative explicit-content urgency logic, README documentation, Codex-assisted engineering iterations, GPT-5.6 reasoning/review, and manual n8n runtime verification of the submission-critical paths.
 
 The submission does **not** claim that a paid pilot, production deployment, live customer messaging, recovered revenue, or production AI/telephony integrations were completed during Build Week.
+
+## Codex Build-Thread Evidence and Session-ID Retrieval Note
+
+The majority of the core Codex engineering work was performed in this primary Codex Cloud task:
+
+- Primary task: [Revise AIStar.YOU missed call workflow V1](https://chatgpt.com/codex/cloud/tasks/task_e_6a5de59adc3083278b79ca5beb8d0ba8)
+- Cloud task identifier: `task_e_6a5de59adc3083278b79ca5beb8d0ba8`
+- The same task is linked from merged PR #1, which contains the main zero-budget workflow hardening, fixtures, validator, and documentation work.
+
+Before submission, repeated attempts were made to retrieve the requested `/feedback` Session ID from the primary Codex Cloud thread. `/feedback` opened the standard feedback interface but did not expose an ID; `/status` did not expose one; expanded task logs and feedback UI did not expose one; and browser DevTools inspection of the exact primary task record exposed the Cloud task ID plus task-specific turn identifiers, but no verified Codex `session_id` or `thread_id`. Generic `oai-session-id` values seen on unrelated ChatGPT requests were intentionally not treated as the project thread ID.
+
+Because no verified `/feedback` Session ID was exposed by the Codex Cloud web interface before the submission deadline, the exact primary Cloud task identifier above was preserved as the traceable fallback identifier. This README does **not** claim that the `task_e_...` value is a verified Codex `/feedback` Session ID; it documents the retrieval issue and provides the strongest available primary-thread evidence for reviewers.
