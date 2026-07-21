@@ -1,23 +1,29 @@
 {
   "fixtures": [
     {
-      "name": "eligible_lead",
+      "name": "ready_for_handoff",
       "expected_status": "completed_simulation",
       "body": {
         "event_type": "missed_call",
-        "event_id": "HVAC-ELIGIBLE-001",
+        "event_id": "DEMO-HVAC-001",
         "caller_number": "+12145550100",
         "called_number": "+14695550101",
         "timestamp": "2026-07-20T14:15:00Z",
         "client_business": "AIStar.YOU Demo HVAC",
         "issue_category": "no_cooling",
-        "service_requested": "AC repair",
-        "customer_message": "AC stopped cooling and the house is getting hot.",
+        "service_requested": "Upstairs AC stopped cooling; system is running but air feels warm",
+        "customer_message": "Upstairs AC stopped cooling; system is running but air feels warm. Please call back as soon as someone is available.",
         "test_mode": true,
         "consent_status": "approved_test",
         "opt_out": false,
-        "suppression_status": "clear"
-      }
+        "suppression_status": "clear",
+        "city": "Frisco",
+        "zip": "75034",
+        "urgency": "today",
+        "callback_preference": "as soon as someone is available"
+      },
+      "expected_handoff_status": "READY_FOR_HANDOFF",
+      "expected_human_review_required": false
     },
     {
       "name": "opt_out",
@@ -107,6 +113,56 @@
         "called_number": "+14695550101",
         "timestamp": "2026-07-20T14:40:00Z",
         "client_business": "AIStar.YOU Demo HVAC",
+        "test_mode": true,
+        "consent_status": "approved_test",
+        "opt_out": false,
+        "suppression_status": "clear"
+      }
+    },
+    {
+      "name": "human_review_required",
+      "expected_status": "completed_simulation",
+      "expected_handoff_status": "HUMAN_REVIEW_REQUIRED",
+      "expected_human_review_required": true,
+      "body": {
+        "event_type": "missed_call",
+        "event_id": "DEMO-HVAC-HUMAN-REVIEW-001",
+        "caller_number": "+12145550106",
+        "called_number": "+14695550101",
+        "timestamp": "2026-07-20T14:45:00Z",
+        "client_business": "AIStar.YOU Demo HVAC",
+        "issue_category": "maintenance",
+        "service_requested": "HVAC help",
+        "customer_message": "Not sure, something wrong?",
+        "city": "Frisco",
+        "zip": "75034",
+        "urgency": "normal",
+        "callback_preference": "call back",
+        "test_mode": true,
+        "consent_status": "approved_test",
+        "opt_out": false,
+        "suppression_status": "clear"
+      }
+    },
+    {
+      "name": "urgent_human_review_required",
+      "expected_status": "completed_simulation",
+      "expected_handoff_status": "URGENT_HUMAN_REVIEW_REQUIRED",
+      "expected_human_review_required": true,
+      "body": {
+        "event_type": "missed_call",
+        "event_id": "DEMO-HVAC-URGENT-001",
+        "caller_number": "+12145550107",
+        "called_number": "+14695550101",
+        "timestamp": "2026-07-20T14:50:00Z",
+        "client_business": "AIStar.YOU Demo HVAC",
+        "issue_category": "water_leak",
+        "service_requested": "Water leak",
+        "customer_message": "Water pouring from ceiling and flooding the hallway. Please respond urgent.",
+        "city": "Frisco",
+        "zip": "75034",
+        "urgency": "urgent",
+        "callback_preference": "as soon as possible",
         "test_mode": true,
         "consent_status": "approved_test",
         "opt_out": false,
