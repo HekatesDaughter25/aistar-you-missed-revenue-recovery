@@ -107,6 +107,30 @@
               "type": "string"
             },
             {
+              "id": "6fbce0b2-a2d6-4da2-8092-9bfa69eb8ba1",
+              "name": "city",
+              "value": "={{ $json.body.city }}",
+              "type": "string"
+            },
+            {
+              "id": "42705253-3c6f-45a4-8192-12b21ff74500",
+              "name": "zip",
+              "value": "={{ $json.body.zip }}",
+              "type": "string"
+            },
+            {
+              "id": "c0ee0d4b-28d8-4c23-8371-80d718e88391",
+              "name": "urgency",
+              "value": "={{ $json.body.urgency }}",
+              "type": "string"
+            },
+            {
+              "id": "04b72963-fa0b-4833-98af-4eec61c97dc4",
+              "name": "callback_preference",
+              "value": "={{ $json.body.callback_preference }}",
+              "type": "string"
+            },
+            {
               "id": "42a21027-d138-494a-a395-6c45b09f512d",
               "name": "workflow_version",
               "value": "V1-zero-budget-simulation",
@@ -506,13 +530,37 @@
             {
               "id": "855d6df5-ae55-4ba0-87d9-2836db6855da",
               "name": "qualification_result",
-              "value": "={{ ['no_cooling','no_heat','water_leak','gas_smell'].includes(String($json.issue_category).toLowerCase()) ? 'qualified_hvac_service_lead' : 'qualified_general_hvac_callback' }}",
+              "value": "={{ String($json.issue_category || '').trim() ? 'qualified_hvac_service_lead' : 'qualified_general_hvac_callback' }}",
               "type": "string"
             },
             {
               "id": "471ac807-3e40-4a08-8b17-9c0ca7dbf11e",
               "name": "urgency_classification",
-              "value": "={{ ['gas_smell','no_heat','no_cooling','water_leak'].includes(String($json.issue_category).toLowerCase()) ? 'high' : 'standard' }}",
+              "value": "={{ ['emergency','urgent','asap','immediate','gas smell','carbon monoxide','sparks','smoke','flooding','burst pipe','electrical hazard','medical','elderly','infant','no heat with freezing','water pouring'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '') + ' ' + String($json.urgency || '')).toLowerCase().includes(term)) ? 'explicit_urgent_or_concerning_content' : 'standard' }}",
+              "type": "string"
+            },
+            {
+              "id": "9ae2d740-aefb-4833-a0b8-db39f051cce3",
+              "name": "handoff_status",
+              "value": "={{ ['emergency','urgent','asap','immediate','gas smell','carbon monoxide','sparks','smoke','flooding','burst pipe','electrical hazard','medical','elderly','infant','no heat with freezing','water pouring'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '') + ' ' + String($json.urgency || '')).toLowerCase().includes(term)) ? 'URGENT_HUMAN_REVIEW_REQUIRED' : (String($json.customer_message || '').trim().length < 20 || ['not sure','unknown','unclear','maybe','something wrong','issue','problem','help','?'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '')).toLowerCase().includes(term)) ? 'HUMAN_REVIEW_REQUIRED' : 'READY_FOR_HANDOFF') }}",
+              "type": "string"
+            },
+            {
+              "id": "923f489d-0ad5-4e4d-8d06-0079d6794e43",
+              "name": "human_review_required",
+              "value": "={{ (['emergency','urgent','asap','immediate','gas smell','carbon monoxide','sparks','smoke','flooding','burst pipe','electrical hazard','medical','elderly','infant','no heat with freezing','water pouring'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '') + ' ' + String($json.urgency || '')).toLowerCase().includes(term))) || (String($json.customer_message || '').trim().length < 20 || ['not sure','unknown','unclear','maybe','something wrong','issue','problem','help','?'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '')).toLowerCase().includes(term))) }}",
+              "type": "boolean"
+            },
+            {
+              "id": "cfc1ae03-faca-4493-8199-7485486c7f6a",
+              "name": "handoff_reason",
+              "value": "={{ ['emergency','urgent','asap','immediate','gas smell','carbon monoxide','sparks','smoke','flooding','burst pipe','electrical hazard','medical','elderly','infant','no heat with freezing','water pouring'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '') + ' ' + String($json.urgency || '')).toLowerCase().includes(term)) ? 'explicit urgent or concerning content requires urgent human review' : (String($json.customer_message || '').trim().length < 20 || ['not sure','unknown','unclear','maybe','something wrong','issue','problem','help','?'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '')).toLowerCase().includes(term)) ? 'ambiguous or incomplete job details require human review' : 'complete interpretable non-urgent lead ready for handoff') }}",
+              "type": "string"
+            },
+            {
+              "id": "b02ac3b3-7fa0-4eb6-8900-dc00f9fda914",
+              "name": "alert_priority",
+              "value": "={{ ['emergency','urgent','asap','immediate','gas smell','carbon monoxide','sparks','smoke','flooding','burst pipe','electrical hazard','medical','elderly','infant','no heat with freezing','water pouring'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '') + ' ' + String($json.urgency || '')).toLowerCase().includes(term)) ? 'priority' : (String($json.customer_message || '').trim().length < 20 || ['not sure','unknown','unclear','maybe','something wrong','issue','problem','help','?'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '')).toLowerCase().includes(term)) ? 'human_review' : 'normal') }}",
               "type": "string"
             },
             {
@@ -524,7 +572,7 @@
             {
               "id": "edc5da26-baf2-4f74-89bc-25797eff7c0e",
               "name": "simulated_owner_alert_record",
-              "value": "={{ { to: 'hello@aistar.you', channel: 'simulated_email_record_not_sent', subject: '[SIMULATED] Missed call recovery lead - ' + $json.client_business, body: 'Lead ' + $json.lead_id + ' from ' + $json.caller_number + ' classified as ' + (['gas_smell','no_heat','no_cooling','water_leak'].includes(String($json.issue_category).toLowerCase()) ? 'high' : 'standard') + ' urgency. No live email was delivered.' } }}",
+              "value": "={{ { to: 'hello@aistar.you', channel: 'simulated_email_record_not_sent', subject: (['emergency','urgent','asap','immediate','gas smell','carbon monoxide','sparks','smoke','flooding','burst pipe','electrical hazard','medical','elderly','infant','no heat with freezing','water pouring'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '') + ' ' + String($json.urgency || '')).toLowerCase().includes(term)) ? '[SIMULATED PRIORITY] ' : '[SIMULATED] ') + 'Missed call recovery lead - ' + $json.client_business, body: 'Lead ' + $json.lead_id + ' from ' + $json.caller_number + ' handoff_status=' + (['emergency','urgent','asap','immediate','gas smell','carbon monoxide','sparks','smoke','flooding','burst pipe','electrical hazard','medical','elderly','infant','no heat with freezing','water pouring'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '') + ' ' + String($json.urgency || '')).toLowerCase().includes(term)) ? 'URGENT_HUMAN_REVIEW_REQUIRED' : (String($json.customer_message || '').trim().length < 20 || ['not sure','unknown','unclear','maybe','something wrong','issue','problem','help','?'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '')).toLowerCase().includes(term)) ? 'HUMAN_REVIEW_REQUIRED' : 'READY_FOR_HANDOFF')) + ', human_review_required=' + ((['emergency','urgent','asap','immediate','gas smell','carbon monoxide','sparks','smoke','flooding','burst pipe','electrical hazard','medical','elderly','infant','no heat with freezing','water pouring'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '') + ' ' + String($json.urgency || '')).toLowerCase().includes(term))) || (String($json.customer_message || '').trim().length < 20 || ['not sure','unknown','unclear','maybe','something wrong','issue','problem','help','?'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '')).toLowerCase().includes(term)))) + ', alert_priority=' + (['emergency','urgent','asap','immediate','gas smell','carbon monoxide','sparks','smoke','flooding','burst pipe','electrical hazard','medical','elderly','infant','no heat with freezing','water pouring'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '') + ' ' + String($json.urgency || '')).toLowerCase().includes(term)) ? 'priority' : (String($json.customer_message || '').trim().length < 20 || ['not sure','unknown','unclear','maybe','something wrong','issue','problem','help','?'].some(term => (String($json.customer_message || '') + ' ' + String($json.service_requested || '')).toLowerCase().includes(term)) ? 'human_review' : 'normal')) + '. No diagnosis, price, appointment, availability promise, safety instruction, or live email was delivered.' } }}",
               "type": "object"
             },
             {
@@ -556,7 +604,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { workflow_status: $json.workflow_status, lead_id: $json.lead_id || null, eligibility_decision: $json.eligibility_decision || null, eligibility_reason: $json.eligibility_reason || null, qualification_result: $json.qualification_result || null, urgency_classification: $json.urgency_classification || null, simulated_customer_response_record: $json.simulated_customer_response_record || null, simulated_owner_alert_record: $json.simulated_owner_alert_record || null, audit: { workflow_version: $json.workflow_version, simulation_boundary: $json.simulation_boundary || 'zero_budget_demo_no_live_delivery', test_mode: $json.test_mode, note: $json.audit_note } } }}",
+        "responseBody": "={{ { workflow_status: $json.workflow_status, lead_id: $json.lead_id || null, eligibility_decision: $json.eligibility_decision || null, eligibility_reason: $json.eligibility_reason || null, qualification_result: $json.qualification_result || null, handoff_status: $json.handoff_status || null, human_review_required: $json.human_review_required || false, handoff_reason: $json.handoff_reason || null, urgency_classification: $json.urgency_classification || null, simulated_customer_response_record: $json.simulated_customer_response_record || null, simulated_owner_alert_record: $json.simulated_owner_alert_record || null, audit: { workflow_version: $json.workflow_version, simulation_boundary: $json.simulation_boundary || 'zero_budget_demo_no_live_delivery', test_mode: $json.test_mode, note: $json.audit_note } } }}",
         "options": {}
       },
       "type": "n8n-nodes-base.respondToWebhook",

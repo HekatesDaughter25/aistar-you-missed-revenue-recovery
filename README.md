@@ -14,6 +14,7 @@ The V1 workflow demonstrates the complete internal decision path without paid se
 
 - a lead qualification result;
 - an urgency classification;
+- a deterministic BW-003 handoff status: `READY_FOR_HANDOFF`, `HUMAN_REVIEW_REQUIRED`, or `URGENT_HUMAN_REVIEW_REQUIRED`;
 - a simulated customer-response record clearly labeled as not sent;
 - a simulated owner-alert record addressed to `hello@aistar.you` and clearly labeled as not sent;
 - audit fields describing the zero-budget simulation boundary;
@@ -55,8 +56,19 @@ The current V1 keeps the original intent and extends it into a full demonstratio
 9. `Remove Duplicates` remains in the fresh eligible path to remove duplicate items within the current execution without swallowing the only webhook response item.
 10. `Build Duplicate Result` returns a structured stopped result for both the controlled duplicate fixture and execution-history duplicates.
 11. `Build Invalid Payload Result` returns a structured stopped result for malformed or incomplete input.
-12. `Build Simulated Recovery Records` deterministically qualifies eligible HVAC leads, classifies urgency, and builds simulated customer and owner records.
-13. `Final Structured Webhook Response` returns the final JSON response to the webhook caller.
+12. `Build Simulated Recovery Records` deterministically qualifies eligible HVAC leads, classifies urgency, assigns the BW-003 handoff fields, and builds simulated customer and owner records.
+13. `Final Structured Webhook Response` returns the final JSON response to the webhook caller, including `handoff_status`, `human_review_required`, and `handoff_reason`.
+
+
+## BW-003 Deterministic Handoff Model
+
+Every fresh eligible lead that reaches simulated recovery records receives exactly one deterministic handoff status:
+
+- `READY_FOR_HANDOFF`: complete and interpretable job information with no explicit urgent or concerning content; `human_review_required` is false and the simulated owner alert uses normal priority.
+- `HUMAN_REVIEW_REQUIRED`: non-urgent ambiguous, incomplete, or unsafe-to-interpret details such as `not sure`, `unknown`, `unclear`, `maybe`, `something wrong`, `issue`, `problem`, `help`, `?`, or very short customer details; the simulated owner alert asks for human review.
+- `URGENT_HUMAN_REVIEW_REQUIRED`: explicit urgent or concerning content in controlled input fields (`customer_message`, `service_requested`, or `urgency`), including terms such as `emergency`, `urgent`, `asap`, `immediate`, `gas smell`, `carbon monoxide`, `sparks`, `smoke`, `flooding`, `burst pipe`, `electrical hazard`, `medical`, `elderly`, `infant`, `no heat with freezing`, or `water pouring`; the simulated owner alert is marked priority.
+
+Service category alone does not create urgent status: category-only `no_cooling`, `no_heat`, or `water_leak` remains non-urgent unless explicit urgent/concerning content is also present. The approved `DEMO-HVAC-001` Frisco no-cooling fixture is the `READY_FOR_HANDOFF` happy path with ZIP `75034`, urgency `today`, and callback preference `as soon as someone is available`.
 
 ## Consent and Safety Protections
 
@@ -101,18 +113,20 @@ Run local validation first:
 ./scripts/validate_workflow.py
 ```
 
-Expected local validation output includes four `PASS` lines confirming JSON validity, required nodes/connections, absence of secret-like tokens, and six controlled fixtures.
+Expected local validation output includes deterministic fixture results for all three BW-003 handoff statuses, JSON validity, required nodes/connections, absence of category-only urgency logic, absence of secret-like tokens, and eight controlled fixtures.
 
 In n8n, test each fixture body:
 
 | Fixture | Expected status | Expected notes |
 | --- | --- | --- |
-| `eligible_lead` | `completed_simulation` | Produces deterministic qualification, urgency, simulated customer response, and simulated owner alert. |
+| `ready_for_handoff` | `completed_simulation` | `DEMO-HVAC-001` produces `READY_FOR_HANDOFF`, `human_review_required=false`, standard urgency, and a normal simulated owner alert. |
 | `opt_out` | `stopped` | Stops with `opt_out`; no simulated customer response or live delivery. |
 | `suppressed_contact` | `stopped` | Stops with `suppressed`; no simulated customer response or live delivery. |
 | `unapproved_consent` | `stopped` | Stops with `consent_not_approved`; no simulated customer response or live delivery. |
 | `duplicate_lead` | `stopped` | Stops with `duplicate_lead_demo_guard` using the controlled fixture key. Replayed eligible keys stop with `duplicate_lead_execution_history`. |
 | `malformed_missing_required_data` | `stopped` | Stops with `malformed_or_missing_required_data_or_test_mode_not_true`. |
+| `human_review_required` | `completed_simulation` | Ambiguous non-urgent details produce `HUMAN_REVIEW_REQUIRED` and a simulated human-review owner alert. |
+| `urgent_human_review_required` | `completed_simulation` | Explicit urgent/concerning details produce `URGENT_HUMAN_REVIEW_REQUIRED` and a priority simulated owner alert. |
 
 ## Current Limitations
 
