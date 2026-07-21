@@ -156,3 +156,13 @@ GPT-5.6 was used in the project workspace as a reasoning and review partner arou
 Human decisions remained explicit: the founder/project manager set the business and compliance boundaries, approved the expected happy path, required conservative urgency handling, verified runtime behavior manually in n8n, and approved merges only after evidence was captured.
 
 GPT-5.6 does **not** run inside this workflow, and this repository does **not** claim any OpenAI API integration, autonomous customer messaging, or production AI decisioning.
+
+## Build Week Scope and Prior-Work Disclosure
+
+The OpenAI Build Week Submission Period ran from July 13, 2026 at 9:00 AM Pacific Time through July 21, 2026 at 5:00 PM Pacific Time.
+
+The broader AIStar brand and domain existed before Build Week. The current project record does **not** establish that this judged missed-call technical repository or its five-node starting n8n export existed before the Submission Period, so this README does not claim pre-hackathon technical implementation that cannot be evidenced.
+
+During the Submission Period, the project record shows the missed-call business framing and MVP planning, creation and hardening of the zero-budget n8n demonstration, deterministic required-data/eligibility/opt-out/suppression/duplicate protections, structured stopped and eligible outputs, controlled fixtures and validation scripts, the final three-state handoff model, conservative explicit-content urgency logic, README documentation, Codex-assisted engineering iterations, GPT-5.6 reasoning/review, and manual n8n runtime verification of the submission-critical paths.
+
+The submission does **not** claim that a paid pilot, production deployment, live customer messaging, recovered revenue, or production AI/telephony integrations were completed during Build Week.
