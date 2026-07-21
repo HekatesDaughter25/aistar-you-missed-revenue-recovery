@@ -5,7 +5,8 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "missed-call",
-        "options": {}
+        "options": {},
+        "responseMode": "responseNode"
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
@@ -74,6 +75,42 @@
               "name": "suppression_status",
               "value": "={{ $json.body.suppression_status }}",
               "type": "string"
+            },
+            {
+              "id": "414fd1f1-c02c-4f7e-bcac-acf3084c045c",
+              "name": "called_number",
+              "value": "={{ $json.body.called_number }}",
+              "type": "string"
+            },
+            {
+              "id": "e97253c0-1d62-49db-814c-9a18fe4e643c",
+              "name": "issue_category",
+              "value": "={{ $json.body.issue_category }}",
+              "type": "string"
+            },
+            {
+              "id": "6efe06e9-df39-417c-b057-7caf837b262b",
+              "name": "service_requested",
+              "value": "={{ $json.body.service_requested }}",
+              "type": "string"
+            },
+            {
+              "id": "2ec0260b-73ab-4158-8fdf-e64723754fda",
+              "name": "customer_message",
+              "value": "={{ $json.body.customer_message }}",
+              "type": "string"
+            },
+            {
+              "id": "0379edf5-101a-435a-890b-d0a229744d5e",
+              "name": "demo_duplicate_key",
+              "value": "={{ $json.body.demo_duplicate_key || $json.body.event_id }}",
+              "type": "string"
+            },
+            {
+              "id": "42a21027-d138-494a-a395-6c45b09f512d",
+              "name": "workflow_version",
+              "value": "V1-zero-budget-simulation",
+              "type": "string"
             }
           ]
         },
@@ -86,7 +123,123 @@
         0
       ],
       "id": "5247da60-1ead-4a8a-bd6a-196024dd7885",
-      "name": "Edit Fields"
+      "name": "Normalize Missed Call Payload"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9c26b572-0f68-49e8-b96b-2e3e551e3471",
+              "leftValue": "={{ $json.lead_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "60f3763e-2f1a-46d1-b961-50a10517b764",
+              "leftValue": "={{ $json.event_type }}",
+              "rightValue": "missed_call",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "551d6f17-9398-4d2b-b638-fed49e52a710",
+              "leftValue": "={{ $json.caller_number }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "a30b7236-0bab-44f8-bc82-85e2f6f4a4be",
+              "leftValue": "={{ $json.client_business }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "72d109c4-e4db-4ce8-b54e-910de672d302",
+              "leftValue": "={{ String($json.test_mode) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        624,
+        -220
+      ],
+      "id": "69129b9f-f58f-4afe-a394-5a21403a3520",
+      "name": "Required Data Check"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "978dbb8f-0dd8-4cf6-8365-c7c3871b95a2",
+              "name": "workflow_status",
+              "value": "stopped",
+              "type": "string"
+            },
+            {
+              "id": "78ead384-4eb5-49cf-bd03-090be336f046",
+              "name": "eligibility_decision",
+              "value": "blocked",
+              "type": "string"
+            },
+            {
+              "id": "9725ec2e-b17e-4017-ae13-84ec6b39d10d",
+              "name": "eligibility_reason",
+              "value": "malformed_or_missing_required_data_or_test_mode_not_true",
+              "type": "string"
+            },
+            {
+              "id": "e00c0305-8604-419c-846f-f522e3cf0e9e",
+              "name": "audit_note",
+              "value": "Required demo fields were missing/invalid or test_mode was not true. No live delivery attempted.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        -360
+      ],
+      "id": "13581bec-50ea-4351-aaf7-32937f3f57b7",
+      "name": "Build Invalid Payload Result"
     },
     {
       "parameters": {
@@ -136,11 +289,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        416,
-        0
+        832,
+        120
       ],
       "id": "577e2420-452f-48f0-b8ab-ae8254471141",
-      "name": "If"
+      "name": "Consent Opt-Out Suppression Eligibility Check"
     },
     {
       "parameters": {
@@ -157,6 +310,24 @@
               "name": "eligibility_reason",
               "value": "={{ String($json.opt_out).toLowerCase() === 'true'   ? 'opt_out'   : $json.suppression_status !== 'clear'     ? 'suppressed'     : $json.consent_status !== 'approved_test'       ? 'consent_not_approved'       : 'eligibility_failed' }}",
               "type": "string"
+            },
+            {
+              "id": "16539a54-5fc0-4581-ae0e-6b55ac801182",
+              "name": "workflow_status",
+              "value": "stopped",
+              "type": "string"
+            },
+            {
+              "id": "34add99c-4ce8-4a81-8499-113544d3cebf",
+              "name": "audit_note",
+              "value": "Processing stopped before qualification because consent, opt-out, or suppression protection failed. No customer-facing message or live alert was sent.",
+              "type": "string"
+            },
+            {
+              "id": "f73509c4-9570-4ce8-9f56-53f85d1c4fc3",
+              "name": "simulation_boundary",
+              "value": "zero_budget_demo_no_live_delivery",
+              "type": "string"
             }
           ]
         },
@@ -166,26 +337,236 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        624,
-        96
+        1040,
+        220
       ],
       "id": "6e86375f-e9f2-4610-8a41-f338f0df5d6b",
-      "name": "Edit Fields1"
+      "name": "Build Blocked Eligibility Result"
     },
     {
       "parameters": {
-        "operation": "removeItemsSeenInPreviousExecutions",
-        "dedupeValue": "lead_id",
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e010ad90-5027-4d36-861a-28cc5f2be0e3",
+              "leftValue": "={{ $json.demo_duplicate_key }}",
+              "rightValue": "DUPLICATE-HVAC-001",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        -120
+      ],
+      "id": "72cdf4e9-0cf7-4a78-8cbb-bd0158a1a90c",
+      "name": "Deterministic Demo Duplicate Check"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a8e198c2-02ba-4c77-ba4e-2ef2763a3bdf",
+              "name": "workflow_status",
+              "value": "stopped",
+              "type": "string"
+            },
+            {
+              "id": "101b24c3-05e4-4edc-8f18-b5b2ee68e7fd",
+              "name": "eligibility_decision",
+              "value": "blocked",
+              "type": "string"
+            },
+            {
+              "id": "29aa1622-efaf-492c-954f-46bfa1c957c1",
+              "name": "eligibility_reason",
+              "value": "={{ $json.duplicate_source === 'n8n_execution_history' ? 'duplicate_lead_execution_history' : 'duplicate_lead_demo_guard' }}",
+              "type": "string"
+            },
+            {
+              "id": "ce8a0738-a211-42c2-8c48-d35001291221",
+              "name": "audit_note",
+              "value": "={{ $json.duplicate_source === 'n8n_execution_history' ? 'Duplicate detected from persisted n8n execution-history demo state before simulated outreach. Structured stopped response returned; no live delivery attempted.' : 'Controlled fixture duplicate detected before simulated outreach. Remove Duplicates node remains in path for fresh eligible demo traffic.' }}",
+              "type": "string"
+            },
+            {
+              "id": "a239e538-7f54-4ed8-9e61-40bb320c921a",
+              "name": "duplicate_source",
+              "value": "={{ $json.duplicate_source || 'controlled_fixture' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        -260
+      ],
+      "id": "bcd282d1-5d72-4d54-b248-25d6aea8b9e7",
+      "name": "Build Duplicate Result"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $getWorkflowStaticData('global');\ndata.seenDemoDuplicateKeys = data.seenDemoDuplicateKeys || {};\nconst now = new Date().toISOString();\nreturn items.map((item) => {\n  const key = String(item.json.demo_duplicate_key || item.json.lead_id || '');\n  const seenRecord = key ? data.seenDemoDuplicateKeys[key] : undefined;\n  if (key && !seenRecord) {\n    data.seenDemoDuplicateKeys[key] = { first_seen_at: now, lead_id: item.json.lead_id || null };\n  }\n  return {\n    json: {\n      ...item.json,\n      is_execution_history_duplicate: Boolean(seenRecord),\n      duplicate_source: seenRecord ? 'n8n_execution_history' : item.json.duplicate_source,\n      duplicate_first_seen_at: seenRecord?.first_seen_at || null,\n    },\n  };\n});"
+      },
+      "id": "2a57a448-0bbd-45ce-923f-e013f0b4f3df",
+      "name": "Execution History Duplicate Flag",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ff808d92-f153-4261-b5ea-d06ad3308146",
+              "leftValue": "={{ $json.is_execution_history_duplicate }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "8c7c4d37-81e2-4a32-bb1e-76fd1707e498",
+      "name": "Execution History Duplicate Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "removeDuplicateInputItems",
+        "dedupeValue": "demo_duplicate_key",
         "options": {}
       },
       "type": "n8n-nodes-base.removeDuplicates",
       "typeVersion": 2,
       "position": [
-        624,
-        -96
+        1040,
+        -80
       ],
       "id": "ee5a436f-3494-4259-a622-40052cc31094",
       "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d52f0644-fd6b-4182-8a04-754d75b9a022",
+              "name": "workflow_status",
+              "value": "completed_simulation",
+              "type": "string"
+            },
+            {
+              "id": "0f2aedff-c58a-4d6b-9718-2176d7380415",
+              "name": "eligibility_decision",
+              "value": "eligible",
+              "type": "string"
+            },
+            {
+              "id": "855d6df5-ae55-4ba0-87d9-2836db6855da",
+              "name": "qualification_result",
+              "value": "={{ ['no_cooling','no_heat','water_leak','gas_smell'].includes(String($json.issue_category).toLowerCase()) ? 'qualified_hvac_service_lead' : 'qualified_general_hvac_callback' }}",
+              "type": "string"
+            },
+            {
+              "id": "471ac807-3e40-4a08-8b17-9c0ca7dbf11e",
+              "name": "urgency_classification",
+              "value": "={{ ['gas_smell','no_heat','no_cooling','water_leak'].includes(String($json.issue_category).toLowerCase()) ? 'high' : 'standard' }}",
+              "type": "string"
+            },
+            {
+              "id": "9462b8f0-50bc-46b1-b4d6-d2b7eb22503a",
+              "name": "simulated_customer_response_record",
+              "value": "={{ { channel: 'simulated_sms_future_twilio_not_sent', content_status: 'simulated_not_approved_for_live_sending', message: '[SIMULATED - NOT SENT] Thanks for calling ' + $json.client_business + '. We missed your call about ' + ($json.service_requested || 'HVAC service') + '. Reply is simulated in this V1 demo; no live SMS was sent.' } }}",
+              "type": "object"
+            },
+            {
+              "id": "edc5da26-baf2-4f74-89bc-25797eff7c0e",
+              "name": "simulated_owner_alert_record",
+              "value": "={{ { to: 'hello@aistar.you', channel: 'simulated_email_record_not_sent', subject: '[SIMULATED] Missed call recovery lead - ' + $json.client_business, body: 'Lead ' + $json.lead_id + ' from ' + $json.caller_number + ' classified as ' + (['gas_smell','no_heat','no_cooling','water_leak'].includes(String($json.issue_category).toLowerCase()) ? 'high' : 'standard') + ' urgency. No live email was delivered.' } }}",
+              "type": "object"
+            },
+            {
+              "id": "5737a357-ca3b-4472-902b-0aac6b184f75",
+              "name": "audit_note",
+              "value": "Deterministic zero-budget V1 simulation completed. No Gemini, Twilio, email, calendar, or paid service was called.",
+              "type": "string"
+            },
+            {
+              "id": "8956c47e-6b4e-454f-acc8-cd4b785f24eb",
+              "name": "simulation_boundary",
+              "value": "zero_budget_demo_no_live_delivery",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1248,
+        -80
+      ],
+      "id": "86311bc9-0a55-4938-af5b-43af1600f354",
+      "name": "Build Simulated Recovery Records"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { workflow_status: $json.workflow_status, lead_id: $json.lead_id || null, eligibility_decision: $json.eligibility_decision || null, eligibility_reason: $json.eligibility_reason || null, qualification_result: $json.qualification_result || null, urgency_classification: $json.urgency_classification || null, simulated_customer_response_record: $json.simulated_customer_response_record || null, simulated_owner_alert_record: $json.simulated_owner_alert_record || null, audit: { workflow_version: $json.workflow_version, simulation_boundary: $json.simulation_boundary || 'zero_budget_demo_no_live_delivery', test_mode: $json.test_mode, note: $json.audit_note } } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1464,
+        0
+      ],
+      "id": "dcc0381f-8161-477c-8e75-c9ebc6610a8e",
+      "name": "Final Structured Webhook Response"
     }
   ],
   "pinData": {
@@ -207,7 +588,10 @@
             "test_mode": true,
             "consent_status": "approved_test",
             "opt_out": false,
-            "suppression_status": "clear"
+            "suppression_status": "clear",
+            "issue_category": "no_cooling",
+            "service_requested": "AC repair",
+            "customer_message": "AC stopped cooling after hours"
           },
           "webhookUrl": "https://aistar-you.app.n8n.cloud/webhook-test/missed-call",
           "executionMode": "test"
@@ -220,36 +604,156 @@
       "main": [
         [
           {
-            "node": "Edit Fields",
+            "node": "Normalize Missed Call Payload",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Edit Fields": {
+    "Normalize Missed Call Payload": {
       "main": [
         [
           {
-            "node": "If",
+            "node": "Required Data Check",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "If": {
+    "Required Data Check": {
       "main": [
         [
           {
-            "node": "Remove Duplicates",
+            "node": "Consent Opt-Out Suppression Eligibility Check",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Edit Fields1",
+            "node": "Build Invalid Payload Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consent Opt-Out Suppression Eligibility Check": {
+      "main": [
+        [
+          {
+            "node": "Deterministic Demo Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Blocked Eligibility Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deterministic Demo Duplicate Check": {
+      "main": [
+        [
+          {
+            "node": "Build Duplicate Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execution History Duplicate Flag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Build Simulated Recovery Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Invalid Payload Result": {
+      "main": [
+        [
+          {
+            "node": "Final Structured Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Blocked Eligibility Result": {
+      "main": [
+        [
+          {
+            "node": "Final Structured Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Duplicate Result": {
+      "main": [
+        [
+          {
+            "node": "Final Structured Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Simulated Recovery Records": {
+      "main": [
+        [
+          {
+            "node": "Final Structured Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execution History Duplicate Flag": {
+      "main": [
+        [
+          {
+            "node": "Execution History Duplicate Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execution History Duplicate Check": {
+      "main": [
+        [
+          {
+            "node": "Build Duplicate Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Remove Duplicates",
             "type": "main",
             "index": 0
           }

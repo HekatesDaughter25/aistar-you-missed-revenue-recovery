@@ -1,0 +1,117 @@
+{
+  "fixtures": [
+    {
+      "name": "eligible_lead",
+      "expected_status": "completed_simulation",
+      "body": {
+        "event_type": "missed_call",
+        "event_id": "HVAC-ELIGIBLE-001",
+        "caller_number": "+12145550100",
+        "called_number": "+14695550101",
+        "timestamp": "2026-07-20T14:15:00Z",
+        "client_business": "AIStar.YOU Demo HVAC",
+        "issue_category": "no_cooling",
+        "service_requested": "AC repair",
+        "customer_message": "AC stopped cooling and the house is getting hot.",
+        "test_mode": true,
+        "consent_status": "approved_test",
+        "opt_out": false,
+        "suppression_status": "clear"
+      }
+    },
+    {
+      "name": "opt_out",
+      "expected_status": "stopped",
+      "expected_reason": "opt_out",
+      "body": {
+        "event_type": "missed_call",
+        "event_id": "HVAC-OPTOUT-001",
+        "caller_number": "+12145550102",
+        "called_number": "+14695550101",
+        "timestamp": "2026-07-20T14:20:00Z",
+        "client_business": "AIStar.YOU Demo HVAC",
+        "issue_category": "no_heat",
+        "service_requested": "Heating repair",
+        "test_mode": true,
+        "consent_status": "approved_test",
+        "opt_out": true,
+        "suppression_status": "clear"
+      }
+    },
+    {
+      "name": "suppressed_contact",
+      "expected_status": "stopped",
+      "expected_reason": "suppressed",
+      "body": {
+        "event_type": "missed_call",
+        "event_id": "HVAC-SUPPRESSED-001",
+        "caller_number": "+12145550103",
+        "called_number": "+14695550101",
+        "timestamp": "2026-07-20T14:25:00Z",
+        "client_business": "AIStar.YOU Demo HVAC",
+        "issue_category": "water_leak",
+        "service_requested": "Drain line leak",
+        "test_mode": true,
+        "consent_status": "approved_test",
+        "opt_out": false,
+        "suppression_status": "suppressed"
+      }
+    },
+    {
+      "name": "unapproved_consent",
+      "expected_status": "stopped",
+      "expected_reason": "consent_not_approved",
+      "body": {
+        "event_type": "missed_call",
+        "event_id": "HVAC-CONSENT-001",
+        "caller_number": "+12145550104",
+        "called_number": "+14695550101",
+        "timestamp": "2026-07-20T14:30:00Z",
+        "client_business": "AIStar.YOU Demo HVAC",
+        "issue_category": "maintenance",
+        "service_requested": "Tune-up",
+        "test_mode": true,
+        "consent_status": "unknown",
+        "opt_out": false,
+        "suppression_status": "clear"
+      }
+    },
+    {
+      "name": "duplicate_lead",
+      "expected_status": "stopped",
+      "expected_reason": "duplicate_lead_demo_guard",
+      "body": {
+        "event_type": "missed_call",
+        "event_id": "HVAC-DUPLICATE-001",
+        "demo_duplicate_key": "DUPLICATE-HVAC-001",
+        "caller_number": "+12145550105",
+        "called_number": "+14695550101",
+        "timestamp": "2026-07-20T14:35:00Z",
+        "client_business": "AIStar.YOU Demo HVAC",
+        "issue_category": "no_cooling",
+        "service_requested": "AC repair",
+        "test_mode": true,
+        "consent_status": "approved_test",
+        "opt_out": false,
+        "suppression_status": "clear"
+      }
+    },
+    {
+      "name": "malformed_missing_required_data",
+      "expected_status": "stopped",
+      "expected_reason": "malformed_or_missing_required_data_or_test_mode_not_true",
+      "body": {
+        "event_type": "missed_call",
+        "event_id": "",
+        "caller_number": "",
+        "called_number": "+14695550101",
+        "timestamp": "2026-07-20T14:40:00Z",
+        "client_business": "AIStar.YOU Demo HVAC",
+        "test_mode": true,
+        "consent_status": "approved_test",
+        "opt_out": false,
+        "suppression_status": "clear"
+      }
+    }
+  ]
+}
