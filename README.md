@@ -59,7 +59,6 @@ The current V1 keeps the original intent and extends it into a full demonstratio
 12. `Build Simulated Recovery Records` deterministically qualifies eligible HVAC leads, classifies urgency, assigns the BW-003 handoff fields, and builds simulated customer and owner records.
 13. `Final Structured Webhook Response` returns the final JSON response to the webhook caller, including `handoff_status`, `human_review_required`, and `handoff_reason`.
 
-
 ## BW-003 Deterministic Handoff Model
 
 Every fresh eligible lead that reaches simulated recovery records receives exactly one deterministic handoff status:
@@ -149,3 +148,11 @@ The following are possible future production requirements, but they are not impl
 ## How Codex Was Used
 
 Codex was used as the engineering agent to inspect the original n8n export, preserve its working consent/eligibility and duplicate-removal structure, extend the workflow with deterministic zero-budget branches, add controlled fixtures, write a local validation script, run local checks, and document the demo boundaries. Codex did not add credentials, API keys, secrets, personal data, live-delivery integrations, or claims of real delivery/revenue.
+
+## How GPT-5.6 Was Used
+
+GPT-5.6 was used in the project workspace as a reasoning and review partner around the build, not as a runtime component inside n8n. It helped reason through deterministic branch logic, define the three-state handoff model, identify edge cases, design controlled test scenarios, review Codex-generated changes, and interpret n8n runtime outputs before merge decisions.
+
+Human decisions remained explicit: the founder/project manager set the business and compliance boundaries, approved the expected happy path, required conservative urgency handling, verified runtime behavior manually in n8n, and approved merges only after evidence was captured.
+
+GPT-5.6 does **not** run inside this workflow, and this repository does **not** claim any OpenAI API integration, autonomous customer messaging, or production AI decisioning.
